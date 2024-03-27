@@ -18,7 +18,7 @@ class User(Client):
         usr_bot_me = await self.get_me()
         return (self, usr_bot_me.id)
 
-class DonLee_Robot(Client):
+class Candy_Robot(Client):
     USER: User = None
     USER_ID: int = None
 
