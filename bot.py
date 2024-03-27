@@ -45,5 +45,5 @@ class DonLee_Robot(Client):
         )
         self.USER, self.USER_ID = await User().start()
 
-app = DonLee_Robot()
+app = Candy_Robot()
 app.run()
