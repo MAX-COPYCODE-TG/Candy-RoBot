@@ -1,64 +1,49 @@
-import logging
-import logging.config
-
-# Get logging configurations
-logging.config.fileConfig('logging.conf')
-logging.getLogger().setLevel(logging.WARNING)
-
-from pyrogram import Client, __version__
-from pyrogram.raw.all import layer
-from utils import Media
-from info import SESSION, API_ID, API_HASH, BOT_TOKEN, LOG_CHANNEL
-from aiohttp import web as webserver
-from os import environ
-from utils.dbstatus import db
-from plugins.webcode import bot_run
-from Script import script #for restarttxt
-from datetime import date, datetime 
-import pytz
 import pyromod.listen
+from pyrogram import Client, __version__
+from pyrogram.raw.all import layer 
+from Candy_Robot import LOGGER, Config
 
-PORT_CODE = environ.get("PORT", "8080")
-
-class Bot(Client):
-
+class User(Client):
     def __init__(self):
         super().__init__(
-            name=SESSION,
-            api_id=API_ID,
-            api_hash=API_HASH,
-            bot_token=BOT_TOKEN,
-            workers=50,
-            plugins={"root": "plugins"},
-            sleep_threshold=5,
+            Config.USER_SESSION,
+            api_hash=Config.API_HASH,
+            api_id=Config.API_ID,
+            workers=4
         )
+        self.LOGGER = LOGGER
 
     async def start(self):
         await super().start()
-        await Media.ensure_indexes()
-        me = await self.get_me()
-        self.username = '@' + me.username
-        print(f"{me.first_name} with for Pyrogram v{__version__} (Layer {layer}) started on {me.username}.")
-        print("Recoded By Candy-RoBot </>")
+        usr_bot_me = await self.get_me()
+        return (self, usr_bot_me.id)
 
-        tz = pytz.timezone('Asia/Kolkata')
-        today = date.today()
-        now = datetime.now(tz)
-        time = now.strftime("%H:%M:%S %p")
-        await self.send_message(chat_id=LOG_CHANNEL, text=script.RESTART_TXT.format(today, time))
-        
-        client = webserver.AppRunner(await bot_run())
-        await client.setup()
-        bind_address = "0.0.0.0"
-        await webserver.TCPSite(client, bind_address,
-        PORT_CODE).start()
-        
-        
+class DonLee_Robot(Client):
+    USER: User = None
+    USER_ID: int = None
 
-    async def stop(self, *args):
-        await super().stop()
-        print("Bot stopped. Bye.")
+    def __init__(self):
+        super().__init__(
+            "bot",
+            api_hash=Config.API_HASH,
+            api_id=Config.API_ID,
+            plugins={
+                "root": "Candy_Robot"
+            },
+            workers=200,
+            bot_token=Config.BOT_TOKEN,
+            sleep_threshold=10
+        )
+        self.LOGGER = LOGGER
 
+    async def start(self):
+        await super().start()
+        bot_details = await self.get_me()
+        self.set_parse_mode("html")
+        self.LOGGER(__name__).info(
+            f"@{bot_details.username}  started! "
+        )
+        self.USER, self.USER_ID = await User().start()
 
-app = Bot()
+app = DonLee_Robot()
 app.run()
