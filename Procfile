@@ -1,1 +1,2 @@
-web: python3 -m Candy-RoBot
+web: python3 bot.py
+worker: python3 bot.py
